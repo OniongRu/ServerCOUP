@@ -10,14 +10,18 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
 import java.util.Map;
 
 
-@WebServlet(urlPatterns={"/auth/signup/*"})
+@WebServlet(urlPatterns = {"/auth/signup/*"})
 @MultipartConfig
-public class LogInRequestServlet extends HttpServlet {
+public class LogInRequestServlet extends HttpServlet
+{
 
-    private SessionControl control = new SessionControl();
+    private SessionControl control = null;
 
     public LogInRequestServlet(SessionControl control)
     {
@@ -25,70 +29,85 @@ public class LogInRequestServlet extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest request,
-                       HttpServletResponse response) throws ServletException, IOException {
-        String reportReq="doPost|LogIn|";
-        String sessionID=request.getSession().getId();
-        reportReq+=sessionID;
-        if(control.authorization_check(sessionID)!=null)
+                       HttpServletResponse response) throws ServletException, IOException
+    {
+        String reportReq = "doPost|LogIn|";
+        String sessionID = request.getSession().getId();
+        reportReq += sessionID;
+        if (control.authorization_check(sessionID) != null)
         {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().println(false);
-            reportReq+="|Already_in_system";
+            reportReq += "|Already_in_system";
             System.out.println(reportReq);
             return;
         }
         String requestJson = request.getReader().readLine().toString();
-        Map<String,String> requestMap = RequestMapGenerator.entranceData(requestJson);
+        Map<String, String> requestMap = RequestMapGenerator.entranceData(requestJson);
         String login = requestMap.get("login");
         String password = requestMap.get("password");
-        if(login.isEmpty()||password.isEmpty())
+        if (login.isEmpty() || password.isEmpty())
         {
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             response.getWriter().println(false);
-            reportReq+="|Not_enough_data";
+            reportReq += "|Not_enough_data";
             System.out.println(reportReq);
             return;
-        }
-        else {
+        } else
+        {
             response.setStatus(HttpServletResponse.SC_OK);
         }
-        if(!control.logIn(login, password,sessionID))
+
+        try
         {
-            response.setStatus(HttpServletResponse.SC_CONFLICT);
-            response.getWriter().println(false);
-            reportReq+="|bad_data";
-            System.out.println(reportReq);
-            return;
+            if (!control.logIn(login, password, sessionID))
+            {
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+                response.getWriter().println(false);
+                reportReq += "|bad_data";
+                System.out.println(reportReq);
+                return;
+            }
+        } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e)
+        {
+            throw new ServletException("Login failed - internal server error");
         }
-        reportReq+="|login_success|"+login+"|_|"+password;;
+
+        reportReq += "|login_success|" + login + "|_|" + password;
+        ;
         System.out.println(reportReq);
         response.setStatus(HttpServletResponse.SC_CREATED);
         response.getWriter().println(true);
     }
+
     public void doGet(HttpServletRequest request,
-                      HttpServletResponse response) throws ServletException, IOException {
+                      HttpServletResponse response) throws ServletException, IOException
+    {
         System.out.println("get in");
     }
+
     public void doOptions(HttpServletRequest request,
-                          HttpServletResponse response) throws ServletException, IOException {
+                          HttpServletResponse response) throws ServletException, IOException
+    {
         System.out.println("doOpt in");
     }
 
 
     public void doDelete(HttpServletRequest request,
-                         HttpServletResponse response) throws ServletException, IOException {
-        String reportReq="doDelete|LogIn|";
+                         HttpServletResponse response) throws ServletException, IOException
+    {
+        String reportReq = "doDelete|LogIn|";
         String sessionID = request.getSession().getId();
-        reportReq+=sessionID;
-        if(control.authorization_check(sessionID)==null)
+        reportReq += sessionID;
+        if (control.authorization_check(sessionID) == null)
         {
-            reportReq+="|already_not_in_system";
+            reportReq += "|already_not_in_system";
             System.out.println(reportReq);
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             response.getWriter().println(false);
             return;
         }
-        reportReq+="|log_out|"+control.logOut(sessionID);
+        reportReq += "|log_out|" + control.logOut(sessionID);
         System.out.println(reportReq);
         response.setStatus(HttpServletResponse.SC_OK);
         response.getWriter().println(true);
