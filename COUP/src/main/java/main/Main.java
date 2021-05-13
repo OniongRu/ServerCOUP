@@ -11,10 +11,6 @@ import servlets.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        /*String meme = "{\"login\":\"вапвап\",\"password\":\"вапвапвап\"}";
-        Gson gson = new Gson();
-        Map <String,String>cool = RequestMapGenerator.entranceData(meme);
-        System.out.println(cool);*/
 
         FilterHolder filterHolder = new FilterHolder(CrossOriginFilter.class);
         filterHolder.setInitParameter("allowedOrigins", "*");
@@ -25,8 +21,9 @@ public class Main {
         context.addServlet(new ServletHolder(new SignUpRequestServlet(control)), "/auth/signup");
         context.addServlet(new ServletHolder(new LogInRequestServlet(control)), "/auth/login");
         context.addServlet(new ServletHolder(new AuthorizationRequestServlet(control)), "/auth/me");
-        context.addServlet(new ServletHolder(new GroupMainInfoServlet(control)), "/groups/getMainInfo/*");
+        context.addServlet(new ServletHolder(new GroupMainInfoRequestServlet(control)), "/groups/getMainInfo/*");
         context.addServlet(new ServletHolder(new GroupsInformationRequestServlet(control)), "/groups/getGroupList");
+        context.addServlet(new ServletHolder(new GroupCreationRequestServlet(control)),"/groups/createGroup/*");
         context.addFilter(filterHolder, "/*", null);
         Server server = new Server(8080);
         server.setHandler(context);
