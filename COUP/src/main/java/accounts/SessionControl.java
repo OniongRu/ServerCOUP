@@ -1,43 +1,63 @@
 package accounts;
 
+import dataProcessing.RawDataAdapter;
+import interactDB.DBManager;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
 import java.util.HashMap;
 
-public class SessionControl {
-    private HashMap<String,String> users;
-    private HashMap<String,String> sessions;
+public class SessionControl
+{
+    private DBManager manager;
+    private RawDataAdapter rawDataAdapter;
+    private HashMap<String, Integer> sessions;
 
-    public SessionControl()
+    public SessionControl(DBManager manager)
     {
-        users = new HashMap<String,String>();
-        sessions = new HashMap<String,String>();
+        this.manager = manager;
+        rawDataAdapter = new RawDataAdapter(manager);
+        sessions = new HashMap<String, Integer>();
     }
 
-    public String authorization_check(String sessionID) //return login if exist in sessions
+    public DBManager getManager()
+    {
+        return manager;
+    }
+
+    public RawDataAdapter getRawDataAdapter()
+    {
+        return rawDataAdapter;
+    }
+
+    public Integer authorization_check(String sessionID) //return login if exist in sessions
     {
         return sessions.get(sessionID);
     }
 
-    public boolean logIn(String login, String password, String sessionID)
+    public boolean logIn(String login, String password, String sessionID) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException
     {
-        String password_by_login = users.get(login);
-        if(password_by_login!=null) {
-            if (password_by_login.equals(password))
-            {
-                sessions.put(sessionID, login);
-                return true;
-            }
+        if (manager.isUserValid(login, password))
+        {
+            sessions.put(sessionID, manager.getUserIdByLogin(login));
+            return true;
         }
         return false;
     }
 
-    public boolean registerUser(String login, String password)
+    public boolean registerUser(String login, String password) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException
     {
-        if(users.containsKey(login)) return false;
+        return manager.registerUser(login, password);
+
+        //Регистрация
+
+        /*if(users.containsKey(login)) return false;
         users.put(login,password);
-        return true;
+        return true;*/
     }
 
-    public String logOut(String sessionID)
+    public Integer logOut(String sessionID)
     {
         return sessions.remove(sessionID);
     }
