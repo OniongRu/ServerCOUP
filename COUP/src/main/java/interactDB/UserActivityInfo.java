@@ -1,19 +1,22 @@
 package interactDB;
 
+import com.google.gson.annotations.SerializedName;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class UserActivityInfo
 {
     private String name;
-    private Double cpuUsage;
-    private Long ramUsage;
-    private Integer threadAmount;
-    private Integer activeWindowTime;
-    private Integer windowTime;
-    private Integer packagesAmount;
+    private double cpuUsage;
+    private long ramUsage;
+    private int threadAmount;
+    private int activeWindowTime;
+    private int windowTime;
+    private int packagesAmount;
     private LocalDateTime creationDate;
 
-    public UserActivityInfo(String name, LocalDateTime creationDate, Double cpuUsage, Long ramUsage, Integer threadAmount, Integer activeWindowTime, Integer windowTime, Integer packagesAmount) {
+    public UserActivityInfo(String name, LocalDateTime creationDate, double cpuUsage, long ramUsage, int threadAmount, int activeWindowTime, int windowTime, int packagesAmount) {
         this.name = name;
         this.cpuUsage = cpuUsage;
         this.ramUsage = ramUsage;
@@ -28,27 +31,27 @@ public class UserActivityInfo
         return name;
     }
 
-    public Double getCpuUsage() {
+    public double getCpuUsage() {
         return cpuUsage;
     }
 
-    public Long getRamUsage() {
+    public long getRamUsage() {
         return ramUsage;
     }
 
-    public Integer getThreadAmount() {
+    public int getThreadAmount() {
         return threadAmount;
     }
 
-    public Integer getActiveWindowTime() {
+    public int getActiveWindowTime() {
         return activeWindowTime;
     }
 
-    public Integer getWindowTime() {
+    public int getWindowTime() {
         return windowTime;
     }
 
-    public Integer getPackagesAmount() {
+    public int getPackagesAmount() {
         return packagesAmount;
     }
 

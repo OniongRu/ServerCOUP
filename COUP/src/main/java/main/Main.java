@@ -31,7 +31,6 @@ public class Main {
             Test input begin
         */
 
-        RawDataAdapter RDAdapter = new RawDataAdapter(manager);
         String pattern = "yyyy-MM-dd HH:mm:ss";
         String beginTimeString = "2021-03-16 22:00:00";
         String endTimeString = "2021-04-18 22:00:00";
@@ -39,25 +38,8 @@ public class Main {
         LocalDateTime beginObservation = LocalDateTime.from(formatter.parse(beginTimeString));
         LocalDateTime endObservation = LocalDateTime.from(formatter.parse(endTimeString));
 
-        Clock clock = Clock.systemDefaultZone();
-        Instant start = clock.instant();
-        ArrayList<UserActivityInfo> userActivityInfo = RDAdapter.getUserTableInfo("Goose", 4, 6, beginObservation, endObservation);
-        Instant end = clock.instant();
-        System.out.println(start);
-        System.out.println(end);
-
-        //TODO - print here correctly
-        GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting();
-        gsonBuilder.registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {
-            @Override
-            public JsonElement serialize(LocalDateTime localDateTime, Type type, JsonSerializationContext jsonDeserializationContext) throws JsonParseException {
-                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss, dd.MM.yyyy");
-                return new JsonPrimitive(dateTimeFormatter.format(localDateTime)); //LocalDateTime.parse(json.getAsString(), dateTimeFormatter);
-            }
-        });
-        Gson gson = gsonBuilder.create();
-        String str = gson.toJson(userActivityInfo);
-        System.out.println(str);
+        RawDataAdapter RDAdapter = new RawDataAdapter(manager);
+        RDAdapter.getUserTableJson("Goose", 4, beginObservation, endObservation);
 
         /*
          *   Test input end

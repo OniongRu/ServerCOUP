@@ -1,14 +1,21 @@
 package dataProcessing;
 
+import com.google.gson.*;
+import com.google.gson.annotations.SerializedName;
+import com.google.gson.reflect.TypeToken;
 import interactDB.DBManager;
 import interactDB.FrontPageInfoClass;
 import interactDB.UserData;
 import interactDB.UserActivityInfo;
 import exceptions.PrimaryKeyNotUniqueException;
 
+import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.sql.SQLException;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class RawDataAdapter
@@ -145,11 +152,141 @@ public class RawDataAdapter
         }
     }
 
-    public ArrayList<UserActivityInfo> getUserTableInfo(String userName, int timeUnit, int flag, LocalDateTime startDate, LocalDateTime endDate)
+    private static class UnionClass
+    {
+        @SerializedName(value = "Columns")
+        private ArrayList<?> columnGroupDescriptors;
+        @SerializedName(value = "Data")
+        private ArrayList<UserActivityInfo> userActivityInfo;
+
+        public UnionClass(ArrayList<ColumnGroupDescriptor> columnGroupDescriptors, ArrayList<UserActivityInfo> userActivityInfo)
+        {
+            this.columnGroupDescriptors = columnGroupDescriptors;
+            this.userActivityInfo = userActivityInfo;
+        }
+    }
+
+    private static class ColumnDescriptor
+    {
+        @SerializedName(value = "Header")
+        public String header;
+        @SerializedName(value = "accessor")
+        public String accessor;
+
+        ColumnDescriptor(String header, int columnGroupIndex)
+        {
+            this.header = header;
+            accessor = String.valueOf(columnGroupIndex);
+        }
+
+        public ColumnDescriptor(String header, String accessor)
+        {
+            this.header = header;
+            this.accessor = accessor;
+        }
+    }
+
+    private static class ColumnGroupDescriptor
+    {
+        public static int counter = 1;
+
+        @SerializedName(value = "Header")
+        public String header;
+
+        @SerializedName(value = "columns")
+        public ArrayList<ColumnDescriptor> columns;
+
+        ColumnGroupDescriptor(LocalDateTime columnDate, int timeUnit)
+        {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            header = columnDate.format(formatter) + " - " + columnDate.plusHours(timeUnit).format(formatter);
+            columns = new ArrayList<>();
+            columns.add(new ColumnDescriptor("CPU usage", counter + "c"));
+            columns.add(new ColumnDescriptor("RAM usage", counter + "r"));
+            columns.add(new ColumnDescriptor("Foreground time", counter + "f"));
+            columns.add(new ColumnDescriptor("Total time", counter + "t"));
+            columns.add(new ColumnDescriptor("Threads amount", counter + "th"));
+            columns.add(new ColumnDescriptor("Measures count", counter + "m"));
+            counter = counter + 1;
+        }
+    }
+
+    public String getUserTableJson(String userName, int timeUnit, LocalDateTime startDate, LocalDateTime endDate)
+    {
+        Clock clock = Clock.systemDefaultZone();
+        Instant start = clock.instant();
+        ArrayList<UserActivityInfo> userActivityInfo = getUserTableInfo(userName, timeUnit, startDate, endDate);
+        Instant end = clock.instant();
+        System.out.println(start);
+        System.out.println(end);
+
+        ArrayList columnGroups = new ArrayList<>();
+        columnGroups.add(new ColumnDescriptor("User", "program"));
+        LocalDateTime currentHeaderGroupDate = null;
+        for (int i = 0; i < userActivityInfo.size(); i++)
+        {
+            LocalDateTime currentCreationDate = userActivityInfo.get(i).getCreationDate();
+            if (currentCreationDate != currentHeaderGroupDate)
+            {
+                columnGroups.add(new ColumnGroupDescriptor(currentCreationDate, timeUnit));
+                currentHeaderGroupDate = currentCreationDate;
+            }
+        }
+
+        //TODO - print here correctly
+        GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting();
+        gsonBuilder.registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>()
+        {
+            @Override
+            public JsonElement serialize(LocalDateTime localDateTime, Type type, JsonSerializationContext jsonDeserializationContext) throws JsonParseException
+            {
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss, dd.MM.yyyy");
+                return new JsonPrimitive(dateTimeFormatter.format(localDateTime));
+            }
+        });
+
+        Type collectionType = new TypeToken<ArrayList<UserActivityInfo>>() {}.getType();
+
+        gsonBuilder.registerTypeAdapter(new TypeToken<ArrayList<UserActivityInfo>>() {}.getType(), new JsonSerializer<ArrayList<UserActivityInfo>>()
+        {
+            @Override
+            public JsonElement serialize(ArrayList<UserActivityInfo> userActivityInfos, Type type, JsonSerializationContext jsonSerializationContext)
+            {
+                JsonArray jsonUserActivityInfos = new JsonArray();
+
+                for (int i = 0; i < userActivityInfos.size(); i++)
+                {
+                    JsonObject jsonUserActivityInfo = new JsonObject();
+                    var userActivity = userActivityInfos.get(i).getName();
+                    jsonUserActivityInfo.addProperty("program", userActivityInfos.get(i).getName());
+                    jsonUserActivityInfo.addProperty(i + "c", userActivityInfos.get(i).getCpuUsage());
+                    jsonUserActivityInfo.addProperty(i + "r", userActivityInfos.get(i).getRamUsage());
+                    jsonUserActivityInfo.addProperty(i + "f", userActivityInfos.get(i).getActiveWindowTime());
+                    jsonUserActivityInfo.addProperty(i + "t", userActivityInfos.get(i).getWindowTime());
+                    jsonUserActivityInfo.addProperty(i + "th", userActivityInfos.get(i).getThreadAmount());
+                    jsonUserActivityInfo.addProperty(i + "m", userActivityInfos.get(i).getPackagesAmount());
+                    jsonUserActivityInfos.add(jsonUserActivityInfo);
+                }
+
+                return jsonUserActivityInfos;
+            }
+        });
+
+        Gson gson = gsonBuilder.create();
+
+        Type type = new TypeToken<ArrayList<UserActivityInfo>>(){}.getType();
+        String str = gson.toJson(userActivityInfo);
+        //String str = gson.toJson(userActivityInfo, type);
+        //String str = gson.toJson(new UnionClass(columnGroups, userActivityInfo), UnionClass.class);
+        System.out.println(str);
+        return str;
+    }
+
+    public ArrayList<UserActivityInfo> getUserTableInfo(String userName, int timeUnit, LocalDateTime startDate, LocalDateTime endDate)
     {
         try
         {
-            return getUserTableInfo(manager.getUserIdByLogin(userName), timeUnit, flag, startDate, endDate);
+            return getUserTableInfo(manager.getUserIdByLogin(userName), timeUnit, startDate, endDate);
         } catch (SQLException e)
         {
             System.out.println(e);
@@ -157,7 +294,7 @@ public class RawDataAdapter
         }
     }
 
-    public ArrayList<UserActivityInfo> getUserTableInfo(int userId, int timeScale, int flag, LocalDateTime startDate, LocalDateTime endDate)
+    public ArrayList<UserActivityInfo> getUserTableInfo(int userId, int timeScale, LocalDateTime startDate, LocalDateTime endDate)
     {
         ArrayList<UserActivityInfo> dividedActivityInfo = new ArrayList<>();
 
@@ -166,7 +303,7 @@ public class RawDataAdapter
         ArrayList<UserActivityInfo> activityInfoInTimeScale = null;
         try
         {
-            activityInfoInTimeScale = manager.getUserActivity(userId, timeScale, flag, startDate, endDate);
+            activityInfoInTimeScale = manager.getUserActivity(userId, timeScale, startDate, endDate);
         }
         catch (SQLException e)
         {
