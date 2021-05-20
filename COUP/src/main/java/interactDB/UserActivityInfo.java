@@ -5,15 +5,15 @@ import java.time.LocalDateTime;
 public class UserActivityInfo
 {
     private String name;
-    private double cpuUsage;
-    private long ramUsage;
-    private int threadAmount;
-    private int activeWindowTime;
-    private int windowTime;
-    private int packagesAmount;
+    private Double cpuUsage;
+    private Long ramUsage;
+    private Integer threadAmount;
+    private Integer activeWindowTime;
+    private Integer windowTime;
+    private Integer packagesAmount;
     private LocalDateTime creationDate;
 
-    public UserActivityInfo(String name, LocalDateTime creationDate, double cpuUsage, long ramUsage, int threadAmount, int activeWindowTime, int windowTime, int packagesAmount) {
+    public UserActivityInfo(String name, LocalDateTime creationDate, Double cpuUsage, Long ramUsage, Integer threadAmount, Integer activeWindowTime, Integer windowTime, Integer packagesAmount) {
         this.name = name;
         this.cpuUsage = cpuUsage;
         this.ramUsage = ramUsage;
@@ -28,27 +28,27 @@ public class UserActivityInfo
         return name;
     }
 
-    public double getCpuUsage() {
+    public Double getCpuUsage() {
         return cpuUsage;
     }
 
-    public long getRamUsage() {
+    public Long getRamUsage() {
         return ramUsage;
     }
 
-    public int getThreadAmount() {
+    public Integer getThreadAmount() {
         return threadAmount;
     }
 
-    public int getActiveWindowTime() {
+    public Integer getActiveWindowTime() {
         return activeWindowTime;
     }
 
-    public int getWindowTime() {
+    public Integer getWindowTime() {
         return windowTime;
     }
 
-    public int getPackagesAmount() {
+    public Integer getPackagesAmount() {
         return packagesAmount;
     }
 

@@ -145,11 +145,11 @@ public class RawDataAdapter
         }
     }
 
-    public ArrayList<UserActivityInfo> getUserTableInfo(String userName, int timeUnit, LocalDateTime startDate, LocalDateTime endDate)
+    public ArrayList<UserActivityInfo> getUserTableInfo(String userName, int timeUnit, int flag, LocalDateTime startDate, LocalDateTime endDate)
     {
         try
         {
-            return getUserTableInfo(manager.getUserIdByLogin(userName), timeUnit, startDate, endDate);
+            return getUserTableInfo(manager.getUserIdByLogin(userName), timeUnit, flag, startDate, endDate);
         } catch (SQLException e)
         {
             System.out.println(e);
@@ -157,7 +157,7 @@ public class RawDataAdapter
         }
     }
 
-    public ArrayList<UserActivityInfo> getUserTableInfo(int userId, int timeScale, LocalDateTime startDate, LocalDateTime endDate)
+    public ArrayList<UserActivityInfo> getUserTableInfo(int userId, int timeScale, int flag, LocalDateTime startDate, LocalDateTime endDate)
     {
         ArrayList<UserActivityInfo> dividedActivityInfo = new ArrayList<>();
 
@@ -166,7 +166,7 @@ public class RawDataAdapter
         ArrayList<UserActivityInfo> activityInfoInTimeScale = null;
         try
         {
-            activityInfoInTimeScale = manager.getUserActivity(userId, timeScale, startDate, endDate);
+            activityInfoInTimeScale = manager.getUserActivity(userId, timeScale, flag, startDate, endDate);
         }
         catch (SQLException e)
         {

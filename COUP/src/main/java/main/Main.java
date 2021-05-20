@@ -1,7 +1,10 @@
 package main;
 
 import accounts.SessionControl;
+import com.google.gson.*;
+import dataProcessing.RawDataAdapter;
 import interactDB.DBManager;
+import interactDB.UserActivityInfo;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -9,13 +12,57 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import servlets.*;
 
+import java.lang.reflect.Type;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+
 public class Main {
     public static void main(String[] args) throws Exception {
-
         FilterHolder filterHolder = new FilterHolder(CrossOriginFilter.class);
         filterHolder.setInitParameter("allowedOrigins", "*");
         filterHolder.setInitParameter("allowedMethods", "GET, POST, DELETE");
         DBManager manager = new DBManager();
+
+        /*
+            Test input begin
+        */
+
+        RawDataAdapter RDAdapter = new RawDataAdapter(manager);
+        String pattern = "yyyy-MM-dd HH:mm:ss";
+        String beginTimeString = "2021-03-16 22:00:00";
+        String endTimeString = "2021-04-18 22:00:00";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        LocalDateTime beginObservation = LocalDateTime.from(formatter.parse(beginTimeString));
+        LocalDateTime endObservation = LocalDateTime.from(formatter.parse(endTimeString));
+
+        Clock clock = Clock.systemDefaultZone();
+        Instant start = clock.instant();
+        ArrayList<UserActivityInfo> userActivityInfo = RDAdapter.getUserTableInfo("Goose", 4, 6, beginObservation, endObservation);
+        Instant end = clock.instant();
+        System.out.println(start);
+        System.out.println(end);
+
+        //TODO - print here correctly
+        GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting();
+        gsonBuilder.registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {
+            @Override
+            public JsonElement serialize(LocalDateTime localDateTime, Type type, JsonSerializationContext jsonDeserializationContext) throws JsonParseException {
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss, dd.MM.yyyy");
+                return new JsonPrimitive(dateTimeFormatter.format(localDateTime)); //LocalDateTime.parse(json.getAsString(), dateTimeFormatter);
+            }
+        });
+        Gson gson = gsonBuilder.create();
+        String str = gson.toJson(userActivityInfo);
+        System.out.println(str);
+
+        /*
+         *   Test input end
+         * */
+
         SessionControl control = new SessionControl(manager);
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.addServlet(new ServletHolder(new SignUpRequestServlet(control)), "/auth/signup");

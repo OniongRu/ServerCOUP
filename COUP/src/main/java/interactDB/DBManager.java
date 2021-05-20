@@ -1,6 +1,5 @@
 package interactDB;
 
-import com.mysql.cj.x.protobuf.MysqlxPrepare;
 import dataProcessing.Encryptor;
 import dataProcessing.RawDataAdapter;
 import exceptions.PrimaryKeyNotUniqueException;
@@ -9,9 +8,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -258,11 +256,66 @@ public class DBManager
         }
     }
 
-    public ArrayList<UserActivityInfo> getUserActivity(int userId, int timeScale, LocalDateTime startDate, LocalDateTime endDate) throws SQLException {
+    private UserActivityInfo retrieveStringDataFromQuery(ListIterator<String> listIterator, ResultSet resultSet) throws SQLException
+    {
+        //TODO - get data
+        String name = null;
+        LocalDateTime creationDate = null;
+        Double cpuUsage = null;
+        Long ramUsage = null;
+        Integer threadAmount = null;
+        Integer timeActSum = null;
+        Integer dataPackCount = null;
+
+        int counter = 2; //Index in resultSet
+        String current = listIterator.next();
+        if (current.equals("creation_date"))
+        {
+            creationDate = resultSet.getTimestamp(counter).toLocalDateTime();
+            counter++;
+            current = listIterator.next();
+        }
+
+        if (current.equals("cpu_usage"))
+        {
+            cpuUsage =
+        }
+
+        UserActivityInfo rawHourlyData = new UserActivityInfo(
+                resultSet.getString(1), //name
+                resultSet.getTimestamp(2).toLocalDateTime(), //creation date
+                resultSet.getDouble(3), //cpu usage
+                resultSet.getLong(4), //ram usage
+                resultSet.getInt(5), //thread amount
+                resultSet.getInt(6), //time act sum
+                resultSet.getInt(7), //time sum
+                resultSet.getInt(8) //data pack count
+        );
+        return rawHourlyData;
+    }
+
+    public ArrayList<UserActivityInfo> getUserActivity(int userId, int timeScale, int flag, LocalDateTime startDate, LocalDateTime endDate) throws SQLException {
         ArrayList<UserActivityInfo> rawHourlyData = new ArrayList<>();
         ResultSet resultSet = null;
-        //String queryString = "SELECT program.program_name, creation_date, cpu_usage, ram_usage, thread_amount, time_act_sum, time_sum, data_pack_count FROM hourinfo JOIN program ON hourinfo.program_id = program.program_id JOIN users ON program.user_id = users.user_id WHERE users.user_id = ? AND creation_date >= ? AND creation_date < ? ORDER BY program.program_name ASC, creation_date ASC";
-        String queryString = "SELECT program.program_name, creation_date, cpu_usage, ram_usage, thread_amount, time_act_sum, time_sum, data_pack_count FROM hourinfo JOIN program ON hourinfo.program_id = program.program_id JOIN users ON program.user_id = users.user_id WHERE users.user_id = ? AND creation_date >= ? AND creation_date < ? ORDER BY CAST(TIMESTAMPDIFF(HOUR, ?, creation_date) / ? AS UNSIGNED) ASC, program.program_name ASC, creation_date ASC";
+        //String queryString = "SELECT program.program_name, creation_date, cpu_usage, ram_usage, thread_amount, time_act_sum, time_sum, data_pack_count FROM hourinfo JOIN program ON hourinfo.program_id = program.program_id JOIN users ON program.user_id = users.user_id WHERE users.user_id = ? AND creation_date >= ? AND creation_date < ? ORDER BY CAST(TIMESTAMPDIFF(HOUR, ?, creation_date) / ? AS UNSIGNED) ASC, program.program_name ASC, creation_date ASC";
+        String queryString = "SELECT program.program_name, ";
+        LinkedList<String> fieldList = new LinkedList<String>(List.of("creation_date", "cpu_usage", "ram_usage", "thread_amount", "time_act_sum", "time_sum", "data_pack_count"));
+
+        ListIterator<String> listIterator = fieldList.listIterator();
+        while (listIterator.hasNext())
+        {
+            listIterator.next();
+            if ((flag & 1) == 0)
+            {
+                listIterator.remove();
+            }
+
+            flag >>>= 1;
+        }
+
+        queryString += String.join(", ", fieldList);
+
+        queryString += " FROM hourinfo JOIN program ON hourinfo.program_id = program.program_id JOIN users ON program.user_id = users.user_id WHERE users.user_id = ? AND creation_date >= ? AND creation_date < ? ORDER BY CAST(TIMESTAMPDIFF(HOUR, ?, creation_date) / ? AS UNSIGNED) ASC, program.program_name ASC, creation_date ASC";
         try (PreparedStatement statement = connection.prepareStatement(queryString))
         {
             statement.setInt(1, userId);
@@ -273,16 +326,7 @@ public class DBManager
             resultSet = statement.executeQuery();
             while (resultSet.next())
             {
-                rawHourlyData.add(new UserActivityInfo(
-                    resultSet.getString(1), //name
-                    resultSet.getTimestamp(2).toLocalDateTime(), //creation date
-                    resultSet.getDouble(3), //cpu usage
-                    resultSet.getLong(4), //ram usage
-                    resultSet.getInt(5), //thread amount
-                    resultSet.getInt(6), //time act sum
-                    resultSet.getInt(7), //time sum
-                    resultSet.getInt(8) //data pack count
-                ));
+                retrieveStringDataFromQuery(fieldList.listIterator(), resultSet);
             }
         }
         return rawHourlyData;

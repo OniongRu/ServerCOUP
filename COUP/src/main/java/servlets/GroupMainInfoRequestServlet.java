@@ -41,7 +41,7 @@ public class GroupMainInfoRequestServlet extends HttpServlet
         FrontPageInfoClass frontPageInfo = null;
         try
         {
-            frontPageInfo = control.getRawDataAdapter().getFrontPageInfo(Integer.valueOf(id));
+            frontPageInfo = control.getRawDataAdapter().getFrontPageInfo(Integer.parseInt(id));
         }
         catch(SQLException | PrimaryKeyNotUniqueException e)
         {
