@@ -275,9 +275,9 @@ public class RawDataAdapter
         Gson gson = gsonBuilder.create();
 
         Type type = new TypeToken<ArrayList<UserActivityInfo>>(){}.getType();
-        String str = gson.toJson(userActivityInfo);
+        //String str = gson.toJson(userActivityInfo);
         //String str = gson.toJson(userActivityInfo, type);
-        //String str = gson.toJson(new UnionClass(columnGroups, userActivityInfo), UnionClass.class);
+        String str = gson.toJson(new UnionClass(columnGroups, userActivityInfo), UnionClass.class);
         System.out.println(str);
         return str;
     }
