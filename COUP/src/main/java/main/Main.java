@@ -1,26 +1,21 @@
 package main;
 
 import accounts.SessionControl;
-import com.google.gson.*;
 import dataProcessing.RawDataAdapter;
 import interactDB.DBManager;
-import interactDB.UserActivityInfo;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import servlets.*;
-
-import java.lang.reflect.Type;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class Main {
+
+
     public static void main(String[] args) throws Exception {
         FilterHolder filterHolder = new FilterHolder(CrossOriginFilter.class);
         filterHolder.setInitParameter("allowedOrigins", "*");
@@ -57,7 +52,7 @@ public class Main {
         Server server = new Server(8080);
         server.setHandler(context);
         server.start();
-        java.util.logging.Logger.getGlobal().info("Server started");
+        Logger.getGlobal().info("Server started");
         server.join();
     }
 
