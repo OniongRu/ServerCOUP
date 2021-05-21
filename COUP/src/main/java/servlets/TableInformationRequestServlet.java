@@ -57,9 +57,9 @@ public class TableInformationRequestServlet extends HttpServlet {
         switch (filters.getTitle())
         {
             case "user":
-                RequestUserObject user = null;
+                RequestUserObject requestedDataDescriptor = null;
                 try {
-                    user = builderRequestUser.create().fromJson(requestJson, RequestUserObject.class);
+                    requestedDataDescriptor = builderRequestUser.create().fromJson(requestJson, RequestUserObject.class);
                 }
                 catch (JsonParseException | NullPointerException e )
                 {
@@ -67,6 +67,7 @@ public class TableInformationRequestServlet extends HttpServlet {
                     response.getWriter().println("BAD_JSON_F_USER");
                     return;
                 }
+                responseJson = control.getRawDataAdapter().getUserTableJson(requestedDataDescriptor.getUser(), requestedDataDescriptor.getTimeScale(), requestedDataDescriptor.getIntervalDateStart(), requestedDataDescriptor.getIntervalDateEnd());
                 // FIXME - Запись респонза
                 break;
             default:
