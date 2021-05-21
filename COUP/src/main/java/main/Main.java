@@ -1,6 +1,7 @@
 package main;
 
 import accounts.SessionControl;
+import com.google.gson.GsonBuilder;
 import interactDB.DBManager;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -9,7 +10,12 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import servlets.*;
 
+
+import java.util.logging.Logger;
+
 public class Main {
+
+
     public static void main(String[] args) throws Exception {
 
         FilterHolder filterHolder = new FilterHolder(CrossOriginFilter.class);
@@ -28,7 +34,7 @@ public class Main {
         Server server = new Server(8080);
         server.setHandler(context);
         server.start();
-        java.util.logging.Logger.getGlobal().info("Server started");
+        Logger.getGlobal().info("Server started");
         server.join();
     }
 
