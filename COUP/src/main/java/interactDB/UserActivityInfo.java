@@ -1,5 +1,8 @@
 package interactDB;
 
+import com.google.gson.annotations.SerializedName;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class UserActivityInfo

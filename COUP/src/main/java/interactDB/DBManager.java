@@ -1,6 +1,5 @@
 package interactDB;
 
-import com.mysql.cj.x.protobuf.MysqlxPrepare;
 import dataProcessing.Encryptor;
 import dataProcessing.RawDataAdapter;
 import exceptions.PrimaryKeyNotUniqueException;
@@ -9,9 +8,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -258,11 +256,12 @@ public class DBManager
         }
     }
 
-    public ArrayList<UserActivityInfo> getUserActivity(int userId, int timeScale, LocalDateTime startDate, LocalDateTime endDate) throws SQLException {
+    public ArrayList<UserActivityInfo> getUserActivity(int userId, int timeScale, LocalDateTime startDate, LocalDateTime endDate) throws SQLException
+    {
         ArrayList<UserActivityInfo> rawHourlyData = new ArrayList<>();
         ResultSet resultSet = null;
-        //String queryString = "SELECT program.program_name, creation_date, cpu_usage, ram_usage, thread_amount, time_act_sum, time_sum, data_pack_count FROM hourinfo JOIN program ON hourinfo.program_id = program.program_id JOIN users ON program.user_id = users.user_id WHERE users.user_id = ? AND creation_date >= ? AND creation_date < ? ORDER BY program.program_name ASC, creation_date ASC";
         String queryString = "SELECT program.program_name, creation_date, cpu_usage, ram_usage, thread_amount, time_act_sum, time_sum, data_pack_count FROM hourinfo JOIN program ON hourinfo.program_id = program.program_id JOIN users ON program.user_id = users.user_id WHERE users.user_id = ? AND creation_date >= ? AND creation_date < ? ORDER BY CAST(TIMESTAMPDIFF(HOUR, ?, creation_date) / ? AS UNSIGNED) ASC, program.program_name ASC, creation_date ASC";
+
         try (PreparedStatement statement = connection.prepareStatement(queryString))
         {
             statement.setInt(1, userId);
@@ -273,16 +272,18 @@ public class DBManager
             resultSet = statement.executeQuery();
             while (resultSet.next())
             {
-                rawHourlyData.add(new UserActivityInfo(
-                    resultSet.getString(1), //name
-                    resultSet.getTimestamp(2).toLocalDateTime(), //creation date
-                    resultSet.getDouble(3), //cpu usage
-                    resultSet.getLong(4), //ram usage
-                    resultSet.getInt(5), //thread amount
-                    resultSet.getInt(6), //time act sum
-                    resultSet.getInt(7), //time sum
-                    resultSet.getInt(8) //data pack count
-                ));
+                rawHourlyData.add(new UserActivityInfo
+                    (
+                        resultSet.getString(1),
+                        resultSet.getTimestamp(2).toLocalDateTime(),
+                        resultSet.getDouble(3),
+                        resultSet.getLong(4),
+                        resultSet.getInt(5),
+                        resultSet.getInt(6),
+                        resultSet.getInt(7),
+                        resultSet.getInt(8)
+                    )
+                );
             }
         }
         return rawHourlyData;
