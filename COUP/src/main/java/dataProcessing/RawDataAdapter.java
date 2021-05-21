@@ -233,7 +233,6 @@ public class RawDataAdapter
             }
         }
 
-        //TODO - print here correctly
         GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting();
         gsonBuilder.registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>()
         {

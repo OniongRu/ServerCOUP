@@ -9,6 +9,8 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import servlets.*;
+import tests.Test;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.Logger;
@@ -24,7 +26,7 @@ public class Main {
 
         /*
             Test input begin
-        */
+
 
         String pattern = "yyyy-MM-dd HH:mm:ss";
         String beginTimeString = "2021-03-16 22:00:00";
@@ -36,7 +38,7 @@ public class Main {
         RawDataAdapter RDAdapter = new RawDataAdapter(manager);
         RDAdapter.getUserTableJson("Goose", 4, beginObservation, endObservation);
 
-        /*
+
          *   Test input end
          * */
 
@@ -48,6 +50,7 @@ public class Main {
         context.addServlet(new ServletHolder(new GroupMainInfoRequestServlet(control)), "/groups/getMainInfo/*");
         context.addServlet(new ServletHolder(new GroupsInformationRequestServlet(control)), "/groups/getGroupList");
         context.addServlet(new ServletHolder(new GroupCreationRequestServlet(control)),"/groups/createGroup/*");
+        context.addServlet(new ServletHolder(new TableInformationRequestServlet(control)),"/groups/userTable/*");
         context.addFilter(filterHolder, "/*", null);
         Server server = new Server(8080);
         server.setHandler(context);
