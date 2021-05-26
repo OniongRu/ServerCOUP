@@ -5,6 +5,7 @@ import com.google.gson.*;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -14,10 +15,10 @@ import java.util.regex.Pattern;
 
 public class RequestUserObjectDeserializer implements JsonDeserializer<RequestUserObject>
 {
-    private Pattern pattern = Pattern.compile("(.*GMT)(.?.?.?)(.?.?)"); //Tue May 11 2021 00:00:00 GMT+0300 (Москва, стандартное время) parses this to string below
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E MMMM dd yyyy HH:mm:ss O", Locale.ENGLISH); //Tue May 11 2021 00:00:00 GMT+0300
+    /*private Pattern pattern = Pattern.compile("(.*GMT)(.?.?.?)(.?.?)"); //Tue May 11 2021 00:00:00 GMT+0300 (Москва, стандартное время) parses this to string below
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E MMMM dd yyyy HH:mm:ss O", Locale.ENGLISH); //Tue May 11 2021 00:00:00 GMT+0300*/
 
-    private String parseStringToLocalDateTimeFormatterPattern(String input) throws DateTimeParseException
+    /*private String parseStringToLocalDateTimeFormatterPattern(String input) throws DateTimeParseException
     {
         Matcher matcher = pattern.matcher(input);
         if (!matcher.find())
@@ -26,7 +27,7 @@ public class RequestUserObjectDeserializer implements JsonDeserializer<RequestUs
         }
 
         return matcher.group(1) + matcher.group(2) + ":" + matcher.group(3);
-    }
+    }*/
 
     @Override
     public RequestUserObject deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException
@@ -34,7 +35,7 @@ public class RequestUserObjectDeserializer implements JsonDeserializer<RequestUs
         JsonObject jObject = jsonElement.getAsJsonObject();
         int groupID = jObject.get("groupID").getAsInt();
         int timeScale = jObject.get("timeScale").getAsInt();
-        String user = jObject.get("user").getAsString();
+        int user = jObject.get("users").getAsInt();
 
         JsonArray jDates = jObject.get("dateDelta").getAsJsonArray();
 
@@ -42,8 +43,8 @@ public class RequestUserObjectDeserializer implements JsonDeserializer<RequestUs
         LocalDateTime intervalDateEnd = null;
         try
         {
-            intervalDateStart = LocalDateTime.parse(parseStringToLocalDateTimeFormatterPattern(jDates.get(0).getAsString()), formatter);
-            intervalDateEnd = LocalDateTime.parse(parseStringToLocalDateTimeFormatterPattern(jDates.get(1).getAsString()), formatter);
+            intervalDateStart = LocalDateTime.ofEpochSecond(jDates.get(0).getAsLong() / 1000, 0, ZoneOffset.UTC);
+            intervalDateEnd = LocalDateTime.ofEpochSecond(jDates.get(1).getAsLong() / 1000, 0, ZoneOffset.UTC);
         }
         catch (DateTimeParseException e)
         {

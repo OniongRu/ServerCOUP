@@ -1,7 +1,7 @@
 package servlets;
 
 import accounts.SessionControl;
-import com.google.gson.Gson;
+import com.google.gson.*;
 import interactDB.DBManager;
 
 import javax.servlet.ServletException;
@@ -9,7 +9,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class GroupsInformationRequestServlet extends HttpServlet
 {
@@ -39,38 +43,60 @@ public class GroupsInformationRequestServlet extends HttpServlet
             reportReq += "|not_authorized";
             System.out.println(reportReq);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            Gson gson = new Gson();
-            String groupNamesJson = null;
-            try
+            return;
+        }
+        reportReq += "|success";
+        System.out.println(reportReq);
+
+        GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting();
+        gsonBuilder.registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>()
+        {
+            @Override
+            public JsonElement serialize(LocalDateTime localDateTime, Type type, JsonSerializationContext jsonDeserializationContext) throws JsonParseException
             {
-                //TODO - return json of following format:
+                /*DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss, dd.MM.yyyy");
+                return new JsonPrimitive(dateTimeFormatter.format(localDateTime));*/
+                return new JsonPrimitive(localDateTime.atZone(ZoneId.systemDefault()).toEpochSecond());
+            }
+        });
+
+        Gson gson = gsonBuilder.create();
+        String groupNamesJson = null;
+        try
+        {
+            //TODO - return json of following format:
                 /*
                 groups: [
                     {
+                        id: 1,
                         name: "GooseTheFirst",
                         privilege: 1,
                         userCount: 177013,
                         creationDate: new Date()
                     },
                     {
+                        id: 2,
                         name: "GooseTheSecond",
                         privilege: 2,
                         userCount: 1234,
                         creationDate: new Date()
                     },
                     {
+                        id: 3,
                         name: "GooseTheThird",
                         privilege: 0,
                         userCount: 1243,
                         creationDate: new Date()
                     },
                     {
+                        id: 4,
                         name: "GooseTheForth",
                         privilege: 1,
                         userCount: 324,
                         creationDate: new Date()
                     },
                     {
+                        id: 5,
                         name: "GooseTheFive",
                         privilege: 2,
                         userCount: 123,
@@ -78,20 +104,16 @@ public class GroupsInformationRequestServlet extends HttpServlet
                     }
                 ]
                  */
-                groupNamesJson = gson.toJson(control.getManager().getGroupNamesByUserId(control.authorization_check(sessionID)));
-            } catch (SQLException e)
-            {
-                throw new ServletException("Could not return group names - internal server error");
-            }
-
-            System.out.println(groupNamesJson);
-            response.getWriter().println(groupNamesJson);
-
-            return;
+        groupNamesJson = gson.toJson(control.getManager().getUserGroupDescriptors(control.authorization_check(sessionID)));
+        } catch (SQLException e)
+        {
+            throw new ServletException("Could not return group names - internal server error");
         }
-        reportReq += "|success";
-        System.out.println(reportReq);
+
+        System.out.println(groupNamesJson);
+
         response.setStatus(HttpServletResponse.SC_OK);
+        response.getWriter().println(groupNamesJson);
     }
 
     public void doOptions(HttpServletRequest request,

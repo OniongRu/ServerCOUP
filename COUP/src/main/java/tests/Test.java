@@ -21,21 +21,21 @@ public class Test
     public void testGson()
     {
         String gsonTest = "{\n" +
-                "  \"groupID\": 1,\n" +
-                "  \"user\": \"goose\",\n" +
-                "  \"timeScale\": 1,\n" +
+                "  \"groupID\": \"1\",\n" +
+                "  \"users\": 92,\n" +
                 "  \"dateDelta\": [\n" +
-                "    \"Tue May 11 2021 00:00:00 GMT+1100 (Москва, стандартное время)\",\n" +
-                "    \"Fri May 21 2021 14:11:30 GMT+0300 (Москва, стандартное время)\"\n" +
+                "    1590440400000,\n" +
+                "    1622062799999\n" +
                 "  ],\n" +
                 "  \"programs\": [\n" +
-                "    \"dis\",\n" +
-                "    \"genshin impact\"\n" +
+                "    \"taskhostw.exe\",\n" +
+                "    \"java.exe\"\n" +
                 "  ],\n" +
+                "  \"timeScale\": 4,\n" +
                 "  \"tableFilter\": {\n" +
-                "       \"tableType\": \"dataByUserProgram\",\n" +
-                "       \"title\": \"user\"\n" +
-                "   }\n" +
+                "    \"tableType\": \"dataByUserProgram\",\n" +
+                "    \"title\": \"user\"\n" +
+                "  }\n" +
                 "}";
 
         GsonBuilder builderFilters = new GsonBuilder();

@@ -26,10 +26,10 @@ public class TableInformationRequestServlet extends HttpServlet {
         builderFilters.registerTypeAdapter(RequestFilters.class, new RequestFiltersDeserializer());
     }
 
-    public void doGet(HttpServletRequest request,
+    public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException
     {
-        String reportReq = "doGet|TableInformation|";
+        String reportReq = "doPost|TableInformation|";
         String sessionID = request.getSession().getId();
         reportReq += sessionID;
 

@@ -3,10 +3,7 @@ package dataProcessing;
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
-import interactDB.DBManager;
-import interactDB.FrontPageInfoClass;
-import interactDB.UserData;
-import interactDB.UserActivityInfo;
+import interactDB.*;
 import exceptions.PrimaryKeyNotUniqueException;
 
 import java.lang.reflect.Type;
@@ -211,7 +208,7 @@ public class RawDataAdapter
         }
     }
 
-    public String getUserTableJson(String userName, int timeUnit, LocalDateTime startDate, LocalDateTime endDate)
+    public String getUserTableJson(int userName, int timeUnit, LocalDateTime startDate, LocalDateTime endDate)
     {
         Clock clock = Clock.systemDefaultZone();
         Instant start = clock.instant();

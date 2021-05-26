@@ -50,7 +50,7 @@ public class Main {
         context.addServlet(new ServletHolder(new GroupMainInfoRequestServlet(control)), "/groups/getMainInfo/*");
         context.addServlet(new ServletHolder(new GroupsInformationRequestServlet(control)), "/groups/getGroupList");
         context.addServlet(new ServletHolder(new GroupCreationRequestServlet(control)),"/groups/createGroup/*");
-        context.addServlet(new ServletHolder(new TableInformationRequestServlet(control)),"/groups/userTable/*");
+        context.addServlet(new ServletHolder(new TableInformationRequestServlet(control)),"/groups/getTable/*");
         context.addFilter(filterHolder, "/*", null);
         Server server = new Server(8080);
         server.setHandler(context);

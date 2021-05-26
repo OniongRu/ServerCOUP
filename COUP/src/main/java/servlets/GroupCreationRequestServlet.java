@@ -30,6 +30,7 @@ public class GroupCreationRequestServlet extends HttpServlet {
             System.out.println(reportReq);
             return;
         }
+
         String requestJson = request.getReader().readLine().toString(); //json{name:"goose",privacy:1}
         Map<String, String> requestMap = RequestMapGenerator.entranceData(requestJson);
         String group_name = requestMap.get("name");

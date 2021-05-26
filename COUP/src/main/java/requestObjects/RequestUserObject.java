@@ -10,7 +10,7 @@ import java.util.Locale;
 public class RequestUserObject
 {
     private int groupID;
-    private String user;
+    private int user;
     private int timeScale;
     private LocalDateTime intervalDateStart;
     private LocalDateTime intervalDateEnd;
@@ -20,7 +20,7 @@ public class RequestUserObject
     //private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E MMMM dd yyyy HH:mm:ss O", Locale.ENGLISH); //Tue May 11 2021 00:00:00 GMT+0300
     //private SimpleDateFormat formatter = new SimpleDateFormat("E MMMM dd yyyy HH:mm:ss", Locale.ENGLISH); //Tue May 11 2021 00:00:00 GMT+0300 (Москва, стандартное время)
 
-    public RequestUserObject(int groupID, String user, int timeScale, LocalDateTime startTime, LocalDateTime endTime, ArrayList<String> programs, String title)
+    public RequestUserObject(int groupID, int user, int timeScale, LocalDateTime startTime, LocalDateTime endTime, ArrayList<String> programs, String title)
     {
         this.groupID = groupID;
         this.user = user;
@@ -48,7 +48,7 @@ public class RequestUserObject
         return groupID;
     }
 
-    public String getUser()
+    public int getUser()
     {
         return user;
     }

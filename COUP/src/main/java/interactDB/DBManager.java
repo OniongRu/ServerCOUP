@@ -9,7 +9,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -330,7 +329,7 @@ public class DBManager
     {
         ArrayList<String> groupNameList = new ArrayList<>();
 
-        String queryPattern = "SELECT group_name FROM users JOIN groupmembers ON users.user_id = groupmembers.user_id JOIN usergroup ON groupmembers.group_id = usergroup.group_id WHERE user_id = ?";
+        String queryPattern = "SELECT group_name FROM users JOIN groupmembers ON users.user_id = groupmembers.user_id JOIN usergroup ON groupmembers.group_id = usergroup.group_id WHERE users.user_id = ?";
 
         PreparedStatement preparedStatement = connection.prepareStatement(queryPattern);
 
@@ -343,5 +342,37 @@ public class DBManager
         }
 
         return groupNameList;
+    }
+
+    public ArrayList<UserInGroupDescriptor> getUserGroupDescriptors(String name) throws SQLException
+    {
+        return getUserGroupDescriptors(getUserIdByLogin(name));
+    }
+
+    public ArrayList<UserInGroupDescriptor> getUserGroupDescriptors(int userId) throws SQLException
+    {
+        ArrayList<UserInGroupDescriptor> userGroupDescriptors = new ArrayList<>();
+
+
+        String queryPattern = "SELECT usergroup.group_id, group_name, privilege, COUNT(*), creation_date FROM users JOIN groupmembers ON users.user_id = groupmembers.user_id JOIN usergroup ON groupmembers.group_id = usergroup.group_id WHERE users.user_id = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(queryPattern);
+
+        preparedStatement.setInt(1, userId);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while (resultSet.next())
+        {
+            userGroupDescriptors.add(
+                    new UserInGroupDescriptor(
+                            resultSet.getInt(1),
+                            resultSet.getString(2),
+                            resultSet.getInt(3),
+                            resultSet.getInt(4),
+                            resultSet.getTimestamp(5).toLocalDateTime()
+                    )
+                );
+        }
+
+        return userGroupDescriptors;
     }
 }
