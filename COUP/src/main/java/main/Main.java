@@ -24,24 +24,6 @@ public class Main {
         filterHolder.setInitParameter("allowedMethods", "GET, POST, DELETE");
         DBManager manager = new DBManager();
 
-        /*
-            Test input begin
-
-
-        String pattern = "yyyy-MM-dd HH:mm:ss";
-        String beginTimeString = "2021-03-16 22:00:00";
-        String endTimeString = "2021-04-18 22:00:00";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-        LocalDateTime beginObservation = LocalDateTime.from(formatter.parse(beginTimeString));
-        LocalDateTime endObservation = LocalDateTime.from(formatter.parse(endTimeString));
-
-        RawDataAdapter RDAdapter = new RawDataAdapter(manager);
-        RDAdapter.getUserTableJson("Goose", 4, beginObservation, endObservation);
-
-
-         *   Test input end
-         * */
-
         SessionControl control = new SessionControl(manager);
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.addServlet(new ServletHolder(new SignUpRequestServlet(control)), "/auth/signup");

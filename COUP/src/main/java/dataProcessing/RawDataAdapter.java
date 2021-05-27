@@ -208,27 +208,38 @@ public class RawDataAdapter
         }
     }
 
-    public String getUserTableJson(int userName, int timeUnit, LocalDateTime startDate, LocalDateTime endDate)
+    public String getUserTableJson(int userId, ArrayList<String> programs, int timeUnit, LocalDateTime startDate, LocalDateTime endDate)
     {
         Clock clock = Clock.systemDefaultZone();
         Instant start = clock.instant();
-        ArrayList<UserActivityInfo> userActivityInfo = getUserTableInfo(userName, timeUnit, startDate, endDate);
+        ArrayList<UserActivityInfo> userActivityInfo = getUserTableInfo(userId, programs, timeUnit, startDate, endDate);
         Instant end = clock.instant();
         System.out.println(start);
         System.out.println(end);
-
         ArrayList columnGroups = new ArrayList<>();
-        columnGroups.add(new ColumnDescriptor("User", "program"));
+        //map (date,counter)
+        //userActivityInfo(
+            //program-> generate row with program  str = program:"program"
+            // pr= userActivityInfo(program)
+            // get counter by pr->date
+            //add cells with accessor
+        // )
+        columnGroups.add(new ColumnDescriptor("Programs", "program"));
+        ColumnGroupDescriptor.counter = 1;
         LocalDateTime currentHeaderGroupDate = null;
+        Map<LocalDateTime, Integer> dateCounterMap = new HashMap<>();
         for (int i = 0; i < userActivityInfo.size(); i++)
         {
             LocalDateTime currentCreationDate = userActivityInfo.get(i).getCreationDate();
-            if (currentCreationDate != currentHeaderGroupDate)
+            if (!currentCreationDate.equals(currentHeaderGroupDate))
             {
+                dateCounterMap.put(currentCreationDate, ColumnGroupDescriptor.counter);
                 columnGroups.add(new ColumnGroupDescriptor(currentCreationDate, timeUnit));
                 currentHeaderGroupDate = currentCreationDate;
             }
         }
+
+        userActivityInfo.sort(Comparator.comparing(UserActivityInfo::getName));
 
         GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting();
         gsonBuilder.registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>()
@@ -248,23 +259,36 @@ public class RawDataAdapter
             @Override
             public JsonElement serialize(ArrayList<UserActivityInfo> userActivityInfos, Type type, JsonSerializationContext jsonSerializationContext)
             {
-                JsonArray jsonUserActivityInfos = new JsonArray();
+                JsonArray programsArray = new JsonArray();
+
+                String currentProgram = "";
+                JsonObject program = null;
 
                 for (int i = 0; i < userActivityInfos.size(); i++)
                 {
-                    JsonObject jsonUserActivityInfo = new JsonObject();
-                    var userActivity = userActivityInfos.get(i).getName();
-                    jsonUserActivityInfo.addProperty("program", userActivityInfos.get(i).getName());
-                    jsonUserActivityInfo.addProperty(i + "c", userActivityInfos.get(i).getCpuUsage());
-                    jsonUserActivityInfo.addProperty(i + "r", userActivityInfos.get(i).getRamUsage());
-                    jsonUserActivityInfo.addProperty(i + "f", userActivityInfos.get(i).getActiveWindowTime());
-                    jsonUserActivityInfo.addProperty(i + "t", userActivityInfos.get(i).getWindowTime());
-                    jsonUserActivityInfo.addProperty(i + "th", userActivityInfos.get(i).getThreadAmount());
-                    jsonUserActivityInfo.addProperty(i + "m", userActivityInfos.get(i).getPackagesAmount());
-                    jsonUserActivityInfos.add(jsonUserActivityInfo);
+                    if (!currentProgram.equals(userActivityInfos.get(i).getName()))
+                    {
+                        if (!currentProgram.equals(""))
+                        {
+                            programsArray.add(program);
+                        }
+                        currentProgram = userActivityInfos.get(i).getName();
+                        program = new JsonObject();
+                        program.addProperty("program", userActivityInfos.get(i).getName());
+                    }
+
+                    int index = dateCounterMap.get(userActivityInfos.get(i).getCreationDate());
+                    program.addProperty(index + "c", userActivityInfos.get(i).getCpuUsage());
+                    program.addProperty(index + "r", userActivityInfos.get(i).getRamUsage());
+                    program.addProperty(index + "f", userActivityInfos.get(i).getActiveWindowTime());
+                    program.addProperty(index + "t", userActivityInfos.get(i).getWindowTime());
+                    program.addProperty(index + "th", userActivityInfos.get(i).getThreadAmount());
+                    program.addProperty(index + "m", userActivityInfos.get(i).getPackagesAmount());
                 }
 
-                return jsonUserActivityInfos;
+                programsArray.add(program);
+
+                return programsArray;
             }
         });
 
@@ -278,11 +302,11 @@ public class RawDataAdapter
         return str;
     }
 
-    public ArrayList<UserActivityInfo> getUserTableInfo(String userName, int timeUnit, LocalDateTime startDate, LocalDateTime endDate)
+    public ArrayList<UserActivityInfo> getUserTableInfo(String userName, ArrayList<String> programs, int timeUnit, LocalDateTime startDate, LocalDateTime endDate)
     {
         try
         {
-            return getUserTableInfo(manager.getUserIdByLogin(userName), timeUnit, startDate, endDate);
+            return getUserTableInfo(manager.getUserIdByLogin(userName), programs, timeUnit, startDate, endDate);
         } catch (SQLException e)
         {
             System.out.println(e);
@@ -290,7 +314,7 @@ public class RawDataAdapter
         }
     }
 
-    public ArrayList<UserActivityInfo> getUserTableInfo(int userId, int timeScale, LocalDateTime startDate, LocalDateTime endDate)
+    public ArrayList<UserActivityInfo> getUserTableInfo(int userId, ArrayList<String> programs, int timeScale, LocalDateTime startDate, LocalDateTime endDate)
     {
         ArrayList<UserActivityInfo> dividedActivityInfo = new ArrayList<>();
 
@@ -299,7 +323,14 @@ public class RawDataAdapter
         ArrayList<UserActivityInfo> activityInfoInTimeScale = null;
         try
         {
-            activityInfoInTimeScale = manager.getUserActivity(userId, timeScale, startDate, endDate);
+            /*if (programs.size() == 0)
+            {*/
+                activityInfoInTimeScale = manager.getUserActivity(userId, timeScale, startDate, endDate);
+            /*}
+            else
+            {
+                activityInfoInTimeScale = manager.getUserActivity(userId, programs, timeScale, startDate, endDate);
+            }*/
         }
         catch (SQLException e)
         {

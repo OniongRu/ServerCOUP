@@ -67,7 +67,7 @@ public class TableInformationRequestServlet extends HttpServlet {
                     response.getWriter().println("BAD_JSON_F_USER");
                     return;
                 }
-                responseJson = control.getRawDataAdapter().getUserTableJson(requestedDataDescriptor.getUser(), requestedDataDescriptor.getTimeScale(), requestedDataDescriptor.getIntervalDateStart(), requestedDataDescriptor.getIntervalDateEnd());
+                responseJson = control.getRawDataAdapter().getUserTableJson(requestedDataDescriptor.getUser(), requestedDataDescriptor.getPrograms(), requestedDataDescriptor.getTimeScale(), requestedDataDescriptor.getIntervalDateStart(), requestedDataDescriptor.getIntervalDateEnd());
                 // FIXME - Запись респонза
                 break;
             default:
